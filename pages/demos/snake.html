@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="A cinematic typographic serpent rendered as a continuously reflowed text ribbon with Pretext.">
+  <title>Typeset Snake Loop</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; }
+    html, body {
+      width: 100%;
+      min-height: 100%;
+      overflow-x: hidden;
+      overflow-y: auto;
+      background: #060907;
+    }
+    body {
+      font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    }
+    .stage-wrap {
+      position: relative;
+      width: 100vw;
+    }
+    canvas {
+      display: block;
+      width: 100vw;
+      height: auto;
+      background: transparent;
+    }
+    .media-overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+    .article-media {
+      position: absolute;
+      display: block;
+      border-radius: 14px;
+      box-shadow: 0 12px 28px rgba(53, 33, 16, 0.16);
+      object-fit: cover;
+      background: rgba(255, 255, 255, 0.3);
+    }
+  </style>
+</head>
+<body>
+  <div id="stage-wrap" class="stage-wrap">
+    <canvas id="stage" aria-label="Autonomous typographic snake loop"></canvas>
+    <div id="media-overlay" class="media-overlay" aria-hidden="true"></div>
+  </div>
+  <script type="module" src="./snake.ts"></script>
+</body>
+</html>
