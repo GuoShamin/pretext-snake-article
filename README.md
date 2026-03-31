@@ -2,6 +2,11 @@
 
 一个基于 `@chenglou/pretext` 改造的实验项目：让一条可自动游走、也可由鼠标和键盘引导的“贪吃蛇”，在微信公众号文章正文中穿行，正文会实时绕开蛇身与食物重新排版。
 
+## 在线访问
+
+- 作品直达：`https://guoshamin.github.io/pretext-snake-article/snake/`
+- 全部 demos 集合：`https://guoshamin.github.io/pretext-snake-article/`
+
 ## 效果
 
 - 蛇会自动游走
