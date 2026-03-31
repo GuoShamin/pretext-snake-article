@@ -578,12 +578,32 @@ function layoutArticleFragments(layout: SceneLayout, samples: SnakeSample[], now
   let paragraphIndex = 0
   let cursor: LayoutCursor = { segmentIndex: 0, graphemeIndex: 0 }
   let paragraphGapPending = false
+  let pendingMedia: { src: string, aspect: number } | null = null
 
   for (let columnIndex = 0; columnIndex < layout.columns.length; columnIndex++) {
     const column = layout.columns[columnIndex]!
     let lineTop = column.y
 
     while (lineTop + layout.bodyLineHeight <= column.y + column.h) {
+      if (pendingMedia !== null) {
+        const width = Math.min(column.w * 0.92, 320)
+        const height = width / pendingMedia.aspect
+        const mediaTop = lineTop + 10
+        if (mediaTop + height <= column.y + column.h) {
+          mediaFragments.push({
+            src: pendingMedia.src,
+            x: column.x + (column.w - width) * 0.5,
+            y: mediaTop,
+            width,
+            height,
+          })
+          lineTop = Math.round(mediaTop + height + layout.bodyLineHeight * 0.7)
+          pendingMedia = null
+          continue
+        }
+        break
+      }
+
       if (paragraphIndex >= ARTICLE_PARAGRAPHS.length) {
         return {
           fragments,
@@ -668,14 +688,19 @@ function layoutArticleFragments(layout: SceneLayout, samples: SnakeSample[], now
           if (media !== undefined) {
             const width = Math.min(column.w * 0.92, 320)
             const height = width / media.aspect
-            mediaFragments.push({
-              src: media.src,
-              x: column.x + (column.w - width) * 0.5,
-              y: lineTop + layout.bodyLineHeight + 10,
-              width,
-              height,
-            })
-            lineTop += Math.round(height + layout.bodyLineHeight * 0.9)
+            const mediaTop = lineTop + layout.bodyLineHeight + 10
+            if (mediaTop + height <= column.y + column.h) {
+              mediaFragments.push({
+                src: media.src,
+                x: column.x + (column.w - width) * 0.5,
+                y: mediaTop,
+                width,
+                height,
+              })
+              lineTop = Math.round(mediaTop + height + layout.bodyLineHeight * 0.7)
+            } else {
+              pendingMedia = { src: media.src, aspect: media.aspect }
+            }
           }
           paragraphIndex += 1
           cursor = { segmentIndex: 0, graphemeIndex: 0 }
@@ -704,6 +729,13 @@ function syncMediaFragments(_layout: SceneLayout, mediaFragments: MediaFragment[
     node.loading = 'lazy'
     node.decoding = 'async'
     node.referrerPolicy = 'no-referrer'
+    node.addEventListener('load', () => {
+      node.style.opacity = '1'
+    })
+    node.addEventListener('error', () => {
+      node.style.display = 'none'
+      node.style.opacity = '0'
+    })
     mediaNodes.push(node)
     dom.mediaOverlay.appendChild(node)
   }
@@ -718,7 +750,10 @@ function syncMediaFragments(_layout: SceneLayout, mediaFragments: MediaFragment[
     const viewBottom = window.scrollY + window.innerHeight + 320
     const visible = media.y + media.height >= viewTop && media.y <= viewBottom
     node.style.display = visible ? 'block' : 'none'
-    if (visible && node.src !== media.src) node.src = media.src
+    if (visible && node.src !== media.src) {
+      node.style.opacity = '0'
+      node.src = media.src
+    }
     node.style.left = `${media.x}px`
     node.style.top = `${media.y}px`
     node.style.width = `${media.width}px`
