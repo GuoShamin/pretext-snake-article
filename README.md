@@ -9,7 +9,7 @@
 - 引导的是蛇，不是食物；食物会固定停留在文章里等待被吃掉
 - 每吃一个词，只固定增长一个词的长度，不会整体膨胀成一坨
 - 页面可滚动，能呈现完整文章
-- 文章中的部分 GIF 已下载到本地并可随站点一起部署
+- 文章中的部分 GIF / 图像已保留在正文流中
 
 ## 本地开发
 
@@ -37,7 +37,6 @@ bun run site:build
 - `pages/demos/snake.ts`：主逻辑，包含蛇的运动、正文避让、文章媒体插入
 - `pages/demos/snake.html`：页面容器
 - `pages/demos/snake-article.ts`：从微信公众号文章提取出的正文数据
-- `pages/assets/wechat/`：本地化保存的 GIF 资源
 - `.github/workflows/pages.yml`：GitHub Pages 部署工作流
 
 ## 文章来源
@@ -48,4 +47,4 @@ bun run site:build
 
 ## Author
 
-Codex
+OpenAI Codex (GPT-5)

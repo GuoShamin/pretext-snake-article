@@ -12,11 +12,6 @@ import {
   SNAKE_ARTICLE_PARAGRAPHS,
   SNAKE_ARTICLE_TITLE,
 } from './snake-article.ts'
-import media1 from '../assets/wechat/wechat-pretext-demo-1.gif'
-import media2 from '../assets/wechat/wechat-pretext-demo-2.gif'
-import media3 from '../assets/wechat/wechat-pretext-demo-3.gif'
-import media4 from '../assets/wechat/wechat-pretext-demo-4.gif'
-import media5 from '../assets/wechat/wechat-pretext-demo-5.gif'
 
 type Point = { x: number, y: number }
 
@@ -132,30 +127,33 @@ const BASE_BODY_WORDS = 6
 const MAX_BODY_WORDS = 22
 const HISTORY_POINTS_PER_WORD = 6
 const BASE_HISTORY_POINTS = 24
+const MOBILE_BREAKPOINT = 760
+const MOBILE_FRAME_MS = 1000 / 18
+const DESKTOP_FRAME_MS = 1000 / 36
 const ARTICLE_MEDIA = [
   {
     afterParagraph: 8,
-    src: media1,
+    src: 'https://mmbiz.qpic.cn/sz_mmbiz_gif/Rvq8Ow69CYWFciaM3LdAVogpEn9bwTNuCDTnI8KATLlOPDNzic3z04QwcX1Sf7B3douWmsTWaA7O0sNdP4a3NvWibgKWVEpzQh89hQqNIVOxI8/640?wx_fmt=gif&from=appmsg',
     aspect: 1.45,
   },
   {
     afterParagraph: 36,
-    src: media2,
+    src: 'https://mmbiz.qpic.cn/mmbiz_gif/Rvq8Ow69CYVgJYklJrbxsrVgY1YgdDm0lGiaEmFoKLXrk19loCBNOrG4Wq098FQxlHRoFAFiaWZVOGf0aRqhrOJkWicFyO4AkPe3CozxouMbDQ/640?wx_fmt=gif&from=appmsg',
     aspect: 1.48,
   },
   {
     afterParagraph: 38,
-    src: media3,
+    src: 'https://mmbiz.qpic.cn/sz_mmbiz_gif/Rvq8Ow69CYXrrZEddxjqjQwkaeSZsXOxaXBouKC2kx6j1B5wfqNZ43hjGPnI30icZRicFeMl2Tj8OwZQlZJevxmMiac1uYDiciaD3DLgwn9bK3a4/640?wx_fmt=gif&from=appmsg',
     aspect: 1.36,
   },
   {
     afterParagraph: 40,
-    src: media4,
+    src: 'https://mmbiz.qpic.cn/mmbiz_gif/Rvq8Ow69CYVKDZBcLtMN87hwIfxpiaQJ9zYSJeicOH3PvezKuuxKefTo5sHQ1Rt6grylntPzOU7WjcQgIsZ6ZdqH9bcfaXIF3yNL3ibc5mQqIU/640?wx_fmt=gif&from=appmsg',
     aspect: 1.34,
   },
   {
     afterParagraph: 54,
-    src: media5,
+    src: 'https://mmbiz.qpic.cn/mmbiz_gif/Rvq8Ow69CYX6f2JXQWwDSm6XOUUnYOtnicBdyPYxmbCOGYepTYAZzUG3IbZeiaicxdNFOvtG6NpSibguXCZJwHMgrZpkpq4lQdIHubVmnecd9Kw/640?wx_fmt=gif&from=appmsg',
     aspect: 1.34,
   },
 ] as const
@@ -195,6 +193,7 @@ const st: MotionState = {
 }
 
 let lastFrameTime = 0
+let lastRenderTime = 0
 let sceneCache: { width: number, height: number, layout: SceneLayout } | null = null
 let lastArticleStatus: ArticleLayoutResult = {
   fragments: [],
@@ -275,6 +274,12 @@ function frame(now: number): void {
   if (lastFrameTime === 0) lastFrameTime = now
   const deltaMs = Math.min(now - lastFrameTime, 40)
   lastFrameTime = now
+  const targetFrameMs = window.innerWidth < MOBILE_BREAKPOINT ? MOBILE_FRAME_MS : DESKTOP_FRAME_MS
+  if (now - lastRenderTime < targetFrameMs) {
+    requestAnimationFrame(frame)
+    return
+  }
+  lastRenderTime = now
 
   stepMotion(deltaMs, now)
   render(now)
@@ -698,6 +703,7 @@ function syncMediaFragments(_layout: SceneLayout, mediaFragments: MediaFragment[
     node.className = 'article-media'
     node.loading = 'lazy'
     node.decoding = 'async'
+    node.referrerPolicy = 'no-referrer'
     mediaNodes.push(node)
     dom.mediaOverlay.appendChild(node)
   }
@@ -708,7 +714,11 @@ function syncMediaFragments(_layout: SceneLayout, mediaFragments: MediaFragment[
   for (let index = 0; index < mediaFragments.length; index++) {
     const media = mediaFragments[index]!
     const node = mediaNodes[index]!
-    node.src = media.src
+    const viewTop = window.scrollY - 320
+    const viewBottom = window.scrollY + window.innerHeight + 320
+    const visible = media.y + media.height >= viewTop && media.y <= viewBottom
+    node.style.display = visible ? 'block' : 'none'
+    if (visible && node.src !== media.src) node.src = media.src
     node.style.left = `${media.x}px`
     node.style.top = `${media.y}px`
     node.style.width = `${media.width}px`
